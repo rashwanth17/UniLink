@@ -37,6 +37,21 @@ export const groupService = {
     return response.data;
   },
 
+  // Admin: list pending requests
+  getPendingRequests: async (groupId) => {
+    const response = await api.get(`/groups/${groupId}/requests`);
+    return response.data;
+  },
+
+  approveRequest: async (groupId, userId) => {
+    const response = await api.post(`/groups/${groupId}/requests/${userId}/approve`);
+    return response.data;
+  },
+  rejectRequest: async (groupId, userId) => {
+    const response = await api.post(`/groups/${groupId}/requests/${userId}/reject`);
+    return response.data;
+  },
+
   // Leave group
   leaveGroup: async (groupId) => {
     const response = await api.post(`/groups/${groupId}/leave`);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +18,8 @@ import {
 
 const ProfilePage = () => {
   const { userId } = useParams();
-  const { user: currentUser, updateProfile } = useAuth();
+  const { user: currentUser, updateProfile, uploadAvatar } = useAuth();
+  const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
 
@@ -126,9 +127,27 @@ const ProfilePage = () => {
               </div>
             )}
             {isOwnProfile && (
-              <button className="absolute bottom-0 right-0 p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors">
-                <Camera size={16} />
-              </button>
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (file) {
+                      await uploadAvatar(file);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  className="absolute bottom-0 right-0 p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors"
+                >
+                  <Camera size={16} />
+                </button>
+              </>
             )}
           </div>
 

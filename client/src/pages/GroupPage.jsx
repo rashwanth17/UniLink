@@ -41,6 +41,16 @@ const GroupPage = () => {
     }
   );
 
+  // Pending requests for admins
+  const isPrivileged = Boolean(groupData?.data?.group?.isAdmin || groupData?.data?.group?.isCreator);
+  const { data: requestsData, refetch: refetchRequests } = useQuery(
+    ['group-requests', id],
+    () => groupService.getPendingRequests(id),
+    {
+      enabled: !!id && isPrivileged,
+    }
+  );
+
   // Join group mutation
   const joinGroupMutation = useMutation(
     () => groupService.joinGroup(id),
@@ -85,8 +95,33 @@ const GroupPage = () => {
     }
   );
 
+  // Comment mutation
+  const addCommentMutation = useMutation(
+    ({ postId, content }) => postService.addComment(postId, content),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['group-posts', id]);
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to add comment');
+      },
+    }
+  );
+
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const onChangeDraft = (postId, value) => {
+    setCommentDrafts((prev) => ({ ...prev, [postId]: value }));
+  };
+  const submitComment = (postId) => {
+    const content = (commentDrafts[postId] || '').trim();
+    if (!content) return;
+    addCommentMutation.mutate({ postId, content });
+    setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
+  };
+
   const group = groupData?.data?.group;
   const posts = postsData?.data?.posts || [];
+  const pendingRequests = requestsData?.data?.requests || [];
 
   const handleJoinGroup = () => {
     joinGroupMutation.mutate();
@@ -164,10 +199,10 @@ const GroupPage = () => {
           <div className="flex items-center space-x-2">
             {group.isMember ? (
               <>
-                {group.isAdmin && (
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
-                    <Settings size={20} />
-                  </button>
+                {(group.isAdmin || group.isCreator) && pendingRequests.length > 0 && (
+                  <div className="mr-2 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                    {pendingRequests.length} pending
+                  </div>
                 )}
                 <button
                   onClick={handleLeaveGroup}
@@ -184,7 +219,7 @@ const GroupPage = () => {
                 className="btn-primary flex items-center space-x-2"
               >
                 <UserPlus size={16} />
-                <span>Join Group</span>
+                <span>{group.isPrivate ? 'Request to Join' : 'Join Group'}</span>
               </button>
             )}
           </div>
@@ -215,6 +250,53 @@ const GroupPage = () => {
             <Plus size={18} />
             <span>Create Post</span>
           </Link>
+        </div>
+      )}
+
+      {/* Admin: Pending Requests */}
+      {(group.isAdmin || group.isCreator) && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">Join Requests</h3>
+            <span className="text-sm text-gray-500">{pendingRequests.length}</span>
+          </div>
+          {pendingRequests.length === 0 ? (
+            <p className="text-sm text-gray-600">No pending requests.</p>
+          ) : (
+            <div className="space-y-3">
+              {pendingRequests.map((r) => (
+                <div key={r.user._id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {r.user.profilePicture ? (
+                      <img src={r.user.profilePicture} alt={r.user.name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <span className="text-primary-600 text-xs font-medium">{r.user.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{r.user.name}</div>
+                      <div className="text-xs text-gray-500">{r.user.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={async () => { await groupService.approveRequest(group._id, r.user._id); await refetchRequests(); toast.success('Approved'); queryClient.invalidateQueries(['group', id]); }}
+                      className="btn-primary text-sm"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={async () => { await groupService.rejectRequest(group._id, r.user._id); await refetchRequests(); toast.success('Rejected'); }}
+                      className="btn-secondary text-sm"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -324,7 +406,13 @@ const GroupPage = () => {
                         <Heart size={16} className={post.isLiked ? 'fill-current' : ''} />
                         <span>{post.engagement.likeCount}</span>
                       </button>
-                      <button className="flex items-center space-x-1 hover:text-primary-600 transition-colors">
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById(`comment-input-${post._id}`);
+                          if (el) el.focus();
+                        }}
+                        className="flex items-center space-x-1 hover:text-primary-600 transition-colors"
+                      >
                         <MessageCircle size={16} />
                         <span>{post.engagement.commentCount}</span>
                       </button>
@@ -333,6 +421,59 @@ const GroupPage = () => {
                         <span>Share</span>
                       </button>
                     </div>
+
+                    {/* Comment composer */}
+                    <div className="mt-3 flex items-center space-x-2">
+                      <input
+                        id={`comment-input-${post._id}`}
+                        type="text"
+                        value={commentDrafts[post._id] || ''}
+                        onChange={(e) => onChangeDraft(post._id, e.target.value)}
+                        placeholder="Write a comment..."
+                        className="input-field flex-1"
+                      />
+                      <button
+                        onClick={() => submitComment(post._id)}
+                        className="btn-primary"
+                        disabled={addCommentMutation.isLoading}
+                      >
+                        Comment
+                      </button>
+                    </div>
+
+                    {/* Comments list */}
+                    {post.comments && post.comments.length > 0 && (
+                      <div className="mt-4 space-y-3">
+                        {post.comments.map((c) => (
+                          <div key={c._id} className="flex items-start space-x-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                              {c.author?.profilePicture ? (
+                                <img
+                                  src={c.author.profilePicture}
+                                  alt={c.author?.name || 'User'}
+                                  className="w-8 h-8 object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs text-gray-600">
+                                  {(c.author?.name || 'U').charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {c.author?.name || 'Unknown'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(c.createdAt).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-800 mt-1">{c.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex-shrink-0">
                     <button className="p-1 text-gray-400 hover:text-gray-600">
@@ -351,10 +492,12 @@ const GroupPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Join {group.name}
+              {group.isPrivate ? 'Request to Join' : 'Join'} {group.name}
             </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to join this group? You'll be able to see and create posts.
+              {group.isPrivate
+                ? 'This is a private group. Your request will be sent to group admins for approval.'
+                : "Are you sure you want to join this group? You'll be able to see and create posts."}
             </p>
             <div className="flex space-x-3">
               <button
@@ -368,7 +511,7 @@ const GroupPage = () => {
                 disabled={joinGroupMutation.isLoading}
                 className="flex-1 btn-primary"
               >
-                {joinGroupMutation.isLoading ? 'Joining...' : 'Join Group'}
+                {joinGroupMutation.isLoading ? (group.isPrivate ? 'Requesting...' : 'Joining...') : (group.isPrivate ? 'Send Request' : 'Join Group')}
               </button>
             </div>
           </div>

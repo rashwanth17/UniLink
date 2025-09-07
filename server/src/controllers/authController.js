@@ -124,10 +124,13 @@ const login = asyncHandler(async (req, res) => {
 const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).populate('groups', 'name description memberCount');
 
+  const publicUser = user.getPublicProfile();
+  publicUser.groups = user.groups; // ensure populated groups included
+
   res.status(200).json({
     success: true,
     data: {
-      user: user.getPublicProfile()
+      user: publicUser
     }
   });
 });

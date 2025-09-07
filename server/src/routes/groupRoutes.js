@@ -10,7 +10,10 @@ const {
   leaveGroup,
   addMember,
   removeMember,
-  updateMemberRole
+  updateMemberRole,
+  listJoinRequests,
+  approveJoinRequest,
+  rejectJoinRequest
 } = require('../controllers/groupController');
 const { 
   protect, 
@@ -122,5 +125,10 @@ router.post('/:id/leave', groupIdValidation, leaveGroup);
 router.post('/:id/members', groupIdValidation, addMemberValidation, addMember);
 router.delete('/:id/members/:userId', groupIdValidation, userIdValidation, removeMember);
 router.put('/:id/members/:userId/role', groupIdValidation, userIdValidation, updateMemberRoleValidation, updateMemberRole);
+
+// Join requests (admin/moderator/creator)
+router.get('/:id/requests', groupIdValidation, listJoinRequests);
+router.post('/:id/requests/:userId/approve', groupIdValidation, userIdValidation, approveJoinRequest);
+router.post('/:id/requests/:userId/reject', groupIdValidation, userIdValidation, rejectJoinRequest);
 
 module.exports = router;

@@ -72,7 +72,8 @@ const getGroups = asyncHandler(async (req, res) => {
 const getGroup = asyncHandler(async (req, res) => {
   const group = await Group.findById(req.params.id)
     .populate('creator', 'name email profilePicture bio college')
-    .populate('members.user', 'name email profilePicture bio college');
+    .populate('members.user', 'name email profilePicture bio college')
+    .populate('pendingRequests.user', 'name email profilePicture');
 
   if (!group) {
     return res.status(404).json({
@@ -103,6 +104,11 @@ const getGroup = asyncHandler(async (req, res) => {
   groupObj.memberRole = memberInfo ? memberInfo.role : null;
   groupObj.isAdmin = memberInfo && (memberInfo.role === 'admin' || memberInfo.role === 'moderator');
   groupObj.isCreator = group.creator._id.toString() === userId.toString();
+
+  // Only show pendingRequests to admins/creator/system admin
+  if (!(groupObj.isAdmin || groupObj.isCreator || req.user.role === 'admin')) {
+    delete groupObj.pendingRequests;
+  }
 
   res.status(200).json({
     success: true,
@@ -241,7 +247,7 @@ const deleteGroup = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Join group
+// @desc    Join group (request if private)
 // @route   POST /api/groups/:id/join
 // @access  Private
 const joinGroup = asyncHandler(async (req, res) => {
@@ -284,13 +290,14 @@ const joinGroup = asyncHandler(async (req, res) => {
     });
   }
 
-  // Add user to group
-  await group.addMember(userId);
-
-  res.status(200).json({
-    success: true,
-    message: 'Successfully joined the group'
-  });
+  if (group.isPrivate) {
+    await group.addJoinRequest(userId);
+    return res.status(200).json({ success: true, message: 'Join request sent to group admins' });
+  } else {
+    await group.addMember(userId);
+    try { await User.findByIdAndUpdate(userId, { $addToSet: { groups: groupId } }); } catch (e) {}
+    return res.status(200).json({ success: true, message: 'Successfully joined the group' });
+  }
 });
 
 // @desc    Leave group
@@ -323,6 +330,12 @@ const leaveGroup = asyncHandler(async (req, res) => {
 
   // Remove user from group
   await group.removeMember(userId);
+  // Sync user's groups array
+  try {
+    await User.findByIdAndUpdate(userId, { $pull: { groups: groupId } });
+  } catch (e) {
+    console.error('Failed to sync user.groups on leave:', e.message);
+  }
 
   res.status(200).json({
     success: true,
@@ -382,6 +395,12 @@ const addMember = asyncHandler(async (req, res) => {
 
   // Add member to group
   await group.addMember(newMemberId, role);
+  // Sync user's groups array
+  try {
+    await User.findByIdAndUpdate(newMemberId, { $addToSet: { groups: groupId } });
+  } catch (e) {
+    console.error('Failed to sync user.groups on addMember:', e.message);
+  }
 
   res.status(200).json({
     success: true,
@@ -424,6 +443,12 @@ const removeMember = asyncHandler(async (req, res) => {
 
   // Remove member from group
   await group.removeMember(memberToRemoveId);
+  // Sync user's groups array
+  try {
+    await User.findByIdAndUpdate(memberToRemoveId, { $pull: { groups: groupId } });
+  } catch (e) {
+    console.error('Failed to sync user.groups on removeMember:', e.message);
+  }
 
   res.status(200).json({
     success: true,
@@ -473,6 +498,78 @@ const updateMemberRole = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    List pending join requests (admin/moderator/creator only)
+// @route   GET /api/groups/:id/requests
+// @access  Private
+const listJoinRequests = asyncHandler(async (req, res) => {
+  const groupId = req.params.id;
+  const userId = req.user._id;
+
+  const group = await Group.findById(groupId)
+    .populate('pendingRequests.user', 'name email profilePicture');
+
+  if (!group) {
+    return res.status(404).json({ success: false, message: 'Group not found' });
+  }
+
+  const member = group.members.find(m => m.user.toString() === userId.toString());
+  const isPrivAdmin = member && (member.role === 'admin' || member.role === 'moderator');
+  const isCreator = group.creator.toString() === userId.toString();
+  const isSystemAdmin = req.user.role === 'admin';
+
+  if (!isPrivAdmin && !isCreator && !isSystemAdmin) {
+    return res.status(403).json({ success: false, message: 'Not authorized' });
+  }
+
+  res.status(200).json({ success: true, data: { requests: group.pendingRequests } });
+});
+
+// @desc    Approve join request
+// @route   POST /api/groups/:id/requests/:userId/approve
+// @access  Private
+const approveJoinRequest = asyncHandler(async (req, res) => {
+  const { id: groupId, userId: targetUserId } = req.params;
+  const userId = req.user._id;
+
+  const group = await Group.findById(groupId);
+  if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
+
+  const member = group.members.find(m => m.user.toString() === userId.toString());
+  const isPrivAdmin = member && (member.role === 'admin' || member.role === 'moderator');
+  const isCreator = group.creator.toString() === userId.toString();
+  const isSystemAdmin = req.user.role === 'admin';
+  if (!isPrivAdmin && !isCreator && !isSystemAdmin) {
+    return res.status(403).json({ success: false, message: 'Not authorized' });
+  }
+
+  await group.approveJoinRequest(targetUserId);
+  try { await User.findByIdAndUpdate(targetUserId, { $addToSet: { groups: groupId } }); } catch(e) {}
+
+  res.status(200).json({ success: true, message: 'Request approved' });
+});
+
+// @desc    Reject join request
+// @route   POST /api/groups/:id/requests/:userId/reject
+// @access  Private
+const rejectJoinRequest = asyncHandler(async (req, res) => {
+  const { id: groupId, userId: targetUserId } = req.params;
+  const userId = req.user._id;
+
+  const group = await Group.findById(groupId);
+  if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
+
+  const member = group.members.find(m => m.user.toString() === userId.toString());
+  const isPrivAdmin = member && (member.role === 'admin' || member.role === 'moderator');
+  const isCreator = group.creator.toString() === userId.toString();
+  const isSystemAdmin = req.user.role === 'admin';
+  if (!isPrivAdmin && !isCreator && !isSystemAdmin) {
+    return res.status(403).json({ success: false, message: 'Not authorized' });
+  }
+
+  await group.rejectJoinRequest(targetUserId);
+  res.status(200).json({ success: true, message: 'Request rejected' });
+});
+
 module.exports = {
   getGroups,
   getGroup,
@@ -483,5 +580,8 @@ module.exports = {
   leaveGroup,
   addMember,
   removeMember,
-  updateMemberRole
+  updateMemberRole,
+  listJoinRequests,
+  approveJoinRequest,
+  rejectJoinRequest
 };

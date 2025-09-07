@@ -41,6 +41,17 @@ const groupSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  pendingRequests: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   isActive: {
     type: Boolean,
     default: true
@@ -89,6 +100,7 @@ groupSchema.index({ college: 1 });
 groupSchema.index({ creator: 1 });
 groupSchema.index({ isActive: 1 });
 groupSchema.index({ 'members.user': 1 });
+groupSchema.index({ 'pendingRequests.user': 1 });
 
 // Virtual for checking if user is member
 groupSchema.virtual('isMember').get(function() {
@@ -120,6 +132,37 @@ groupSchema.methods.addMember = function(userId, role = 'member') {
   });
   
   this.memberCount = this.members.length;
+  return this.save();
+};
+
+// Method to add a join request
+groupSchema.methods.addJoinRequest = function(userId) {
+  const alreadyMember = this.members.some(m => m.user.toString() === userId.toString());
+  if (alreadyMember) throw new Error('User is already a member of this group');
+  const alreadyRequested = this.pendingRequests.some(r => r.user.toString() === userId.toString());
+  if (alreadyRequested) throw new Error('Join request already pending');
+  this.pendingRequests.push({ user: userId, requestedAt: new Date() });
+  return this.save();
+};
+
+// Approve a join request
+groupSchema.methods.approveJoinRequest = function(userId, role = 'member') {
+  const reqIndex = this.pendingRequests.findIndex(r => r.user.toString() === userId.toString());
+  if (reqIndex === -1) throw new Error('No pending request for this user');
+  this.pendingRequests.splice(reqIndex, 1);
+  const exists = this.members.some(m => m.user.toString() === userId.toString());
+  if (!exists) {
+    this.members.push({ user: userId, role, joinedAt: new Date() });
+    this.memberCount = this.members.length;
+  }
+  return this.save();
+};
+
+// Reject a join request
+groupSchema.methods.rejectJoinRequest = function(userId) {
+  const reqIndex = this.pendingRequests.findIndex(r => r.user.toString() === userId.toString());
+  if (reqIndex === -1) throw new Error('No pending request for this user');
+  this.pendingRequests.splice(reqIndex, 1);
   return this.save();
 };
 
