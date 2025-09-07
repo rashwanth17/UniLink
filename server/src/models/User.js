@@ -77,7 +77,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Index for better query performance
-userSchema.index({ email: 1 });
+// Note: unique: true on email already creates an index; avoid duplicating it
 userSchema.index({ college: 1 });
 userSchema.index({ role: 1 });
 

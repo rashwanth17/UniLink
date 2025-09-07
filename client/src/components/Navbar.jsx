@@ -150,14 +150,16 @@ const Navbar = () => {
                     <span>Profile</span>
                   </Link>
                   
-                  <Link
-                    to="/settings"
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={() => setIsProfileMenuOpen(false)}
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      navigate('/profile');
+                    }}
+                    className="flex w-full items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <Settings size={16} />
                     <span>Settings</span>
-                  </Link>
+                  </button>
                   
                   <hr className="my-2" />
                   

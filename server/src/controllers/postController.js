@@ -120,7 +120,24 @@ const createPost = asyncHandler(async (req, res) => {
     });
   }
 
-  const { content, groupId, tags, visibility = 'group' } = req.body;
+  const { content, groupId, visibility = 'group' } = req.body;
+  let { tags } = req.body;
+
+  // Normalize tags when coming from multipart/form-data
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) tags = parsed;
+      else if (parsed) tags = [String(parsed)];
+    } catch (_) {
+      // Fallback: comma separated
+      tags = tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+  }
+  if (!Array.isArray(tags)) tags = [];
   const userId = req.user._id;
 
   // Verify group exists and user is a member
@@ -152,17 +169,34 @@ const createPost = asyncHandler(async (req, res) => {
   }
 
   // Extract file information if files were uploaded
+  // Debug log to help trace media uploads in dev
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      console.log('CreatePost upload debug:', {
+        hasFiles: Boolean(req.files),
+        filesCount: Array.isArray(req.files) ? req.files.length : (req.files ? 1 : 0),
+        fieldNames: req.files && req.files.map?.(f => f.fieldname)
+      });
+    } catch (_) {}
+  }
+
   const media = extractFilesInfo(req.files);
 
   // Create post
-  const post = await Post.create({
-    author: userId,
-    group: groupId,
-    content,
-    media,
-    tags: tags || [],
-    visibility
-  });
+  let post;
+  try {
+    post = await Post.create({
+      author: userId,
+      group: groupId,
+      content,
+      media,
+      tags: tags || [],
+      visibility
+    });
+  } catch (err) {
+    console.error('CreatePost error:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to create post' });
+  }
 
   // Update group post count
   group.postCount += 1;

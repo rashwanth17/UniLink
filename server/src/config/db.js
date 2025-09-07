@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      // Modern Mongoose no longer needs most legacy flags; include timeouts
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      family: 4, // force IPv4 to avoid some DNS/IPv6 edge cases
+      maxPoolSize: 10,
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);

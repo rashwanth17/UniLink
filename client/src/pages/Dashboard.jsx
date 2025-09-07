@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { groupService } from '../services/groupService';
 import { postService } from '../services/postService';
@@ -17,6 +18,8 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('groups');
 
@@ -40,6 +43,22 @@ const Dashboard = () => {
 
   const groups = groupsData?.data?.groups || [];
   const posts = postsData?.data?.posts || [];
+
+  // Mutations
+  const likePostMutation = useMutation(
+    (postId) => postService.toggleLike(postId),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['recent-posts']);
+      }
+    }
+  );
+
+  const handleLikeRecentPost = (postId) => {
+    likePostMutation.mutate(postId);
+  };
+
+  const goToGroup = (groupId) => navigate(`/groups/${groupId}`);
 
   const tabs = [
     { id: 'groups', label: 'Groups', icon: Users },
@@ -155,7 +174,9 @@ const Dashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {group.name}
+                              <Link to={`/groups/${group._id}`} className="hover:text-primary-700">
+                                {group.name}
+                              </Link>
                             </h3>
                             {group.isPrivate && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -180,9 +201,12 @@ const Dashboard = () => {
                         </div>
                         <div className="ml-4">
                           {group.isMember ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                              Member
-                            </span>
+                            <Link
+                              to={`/groups/${group._id}`}
+                              className="btn-primary text-sm"
+                            >
+                              Open Group
+                            </Link>
                           ) : (
                             <Link
                               to={`/groups/${group._id}`}
@@ -277,15 +301,24 @@ const Dashboard = () => {
                             {post.content}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <button className="flex items-center space-x-1 hover:text-primary-600">
+                            <button
+                              onClick={() => handleLikeRecentPost(post._id)}
+                              className="flex items-center space-x-1 hover:text-primary-600"
+                            >
                               <Heart size={16} />
                               <span>{post.engagement.likeCount}</span>
                             </button>
-                            <button className="flex items-center space-x-1 hover:text-primary-600">
+                            <button
+                              onClick={() => goToGroup(post.group._id)}
+                              className="flex items-center space-x-1 hover:text-primary-600"
+                            >
                               <MessageCircle size={16} />
                               <span>{post.engagement.commentCount}</span>
                             </button>
-                            <button className="flex items-center space-x-1 hover:text-primary-600">
+                            <button
+                              onClick={() => goToGroup(post.group._id)}
+                              className="flex items-center space-x-1 hover:text-primary-600"
+                            >
                               <Eye size={16} />
                               <span>View</span>
                             </button>

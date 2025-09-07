@@ -18,6 +18,29 @@ const { uploadMultiple, handleUploadError } = require('../utils/fileUpload');
 
 const router = express.Router();
 
+// Middleware to normalize multipart fields (e.g., tags from FormData)
+const normalizePostFields = (req, _res, next) => {
+  // Normalize tags: accept array, JSON string, or comma-separated string
+  if (typeof req.body.tags === 'string') {
+    try {
+      const parsed = JSON.parse(req.body.tags);
+      req.body.tags = Array.isArray(parsed)
+        ? parsed
+        : (parsed ? [String(parsed)] : []);
+    } catch (_) {
+      req.body.tags = req.body.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+  }
+  if (req.body.tags === undefined) req.body.tags = [];
+  if (!Array.isArray(req.body.tags)) req.body.tags = [];
+  if (typeof req.body.content === 'string') req.body.content = req.body.content.trim();
+  if (!req.body.visibility) req.body.visibility = 'group';
+  next();
+};
+
 // Validation rules
 const createPostValidation = [
   body('content')
@@ -29,7 +52,7 @@ const createPostValidation = [
     .withMessage('Valid group ID is required'),
   body('tags')
     .optional()
-    .isArray()
+    .custom((val) => Array.isArray(val))
     .withMessage('Tags must be an array'),
   body('tags.*')
     .optional()
@@ -50,7 +73,7 @@ const updatePostValidation = [
     .withMessage('Post content must be between 1 and 2000 characters'),
   body('tags')
     .optional()
-    .isArray()
+    .custom((val) => Array.isArray(val))
     .withMessage('Tags must be an array'),
   body('tags.*')
     .optional()
@@ -100,7 +123,7 @@ router.use(protect);
 // Post CRUD routes
 router.get('/', getPosts);
 router.get('/:id', postIdValidation, getPost);
-router.post('/', uploadMultiple('media', 5), handleUploadError, createPostValidation, createPost);
+router.post('/', uploadMultiple('media', 5), handleUploadError, normalizePostFields, createPostValidation, createPost);
 router.put('/:id', postIdValidation, updatePostValidation, updatePost);
 router.delete('/:id', postIdValidation, deletePost);
 

@@ -257,7 +257,7 @@ const CreatePost = () => {
             Tags (Optional)
           </h2>
           
-          <form onSubmit={handleAddTag} className="mb-4">
+          <div className="mb-4">
             <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -273,14 +273,15 @@ const CreatePost = () => {
                 />
               </div>
               <button
-                type="submit"
+                type="button"
+                onClick={handleAddTag}
                 className="btn-primary flex items-center space-x-2"
               >
                 <Plus size={16} />
                 <span>Add</span>
               </button>
             </div>
-          </form>
+          </div>
 
           {/* Tags Display */}
           {formData.tags.length > 0 && (

@@ -18,7 +18,7 @@ import {
 
 const ProfilePage = () => {
   const { userId } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
 
@@ -26,15 +26,15 @@ const ProfilePage = () => {
   const isOwnProfile = !userId || userId === currentUser?._id;
   const targetUserId = userId || currentUser?._id;
 
-  // Fetch user profile
+  // Fetch user profile only when viewing someone else's profile
   const { data: userData, isLoading: userLoading } = useQuery(
     ['user', targetUserId],
-    () => authService.getUsersByCollege(currentUser?.college, 1, 1).then(data => {
+    () => authService.getUsersByCollege(currentUser?.college, 1, 100).then(data => {
       const user = data.data.users.find(u => u._id === targetUserId);
       return { success: true, data: { user } };
     }),
     {
-      enabled: !!targetUserId && !!currentUser,
+      enabled: !!targetUserId && !!currentUser && !isOwnProfile,
     }
   );
 
@@ -47,7 +47,7 @@ const ProfilePage = () => {
     }
   );
 
-  const user = userData?.data?.user;
+  const user = isOwnProfile ? currentUser : userData?.data?.user;
   const posts = postsData?.data?.posts || [];
 
   const handleEdit = () => {
@@ -60,8 +60,13 @@ const ProfilePage = () => {
   };
 
   const handleSave = async () => {
-    // TODO: Implement profile update
-    setIsEditing(false);
+    const payload = {
+      name: editData.name,
+      bio: editData.bio,
+      graduationYear: editData.graduationYear ? parseInt(editData.graduationYear) : undefined,
+    };
+    const res = await updateProfile(payload);
+    if (res?.success) setIsEditing(false);
   };
 
   const handleCancel = () => {
@@ -69,7 +74,7 @@ const ProfilePage = () => {
     setEditData({});
   };
 
-  if (userLoading) {
+  if (!isOwnProfile && userLoading) {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="animate-pulse">
