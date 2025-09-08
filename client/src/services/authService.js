@@ -55,6 +55,14 @@ export const authService = {
     return response.data;
   },
 
+  // Get all users (Admin only)
+  getAllUsers: async (page = 1, limit = 50, search = '') => {
+    const response = await api.get('/auth/users', {
+      params: { page, limit, search },
+    });
+    return response.data;
+  },
+
   // Deactivate account
   deactivateAccount: async () => {
     const response = await api.delete('/auth/deactivate');

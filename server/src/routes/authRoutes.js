@@ -1,14 +1,15 @@
 const express = require('express');
 const { body } = require('express-validator');
-const {
-  register,
-  login,
-  getMe,
-  updateProfile,
-  changePassword,
-  uploadAvatar,
-  getUsersByCollege,
-  deactivateAccount
+const { 
+  register, 
+  login, 
+  getMe, 
+  updateProfile, 
+  changePassword, 
+  uploadAvatar, 
+  getUsersByCollege, 
+  getAllUsers,
+  deactivateAccount 
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadSingle, handleUploadError } = require('../utils/fileUpload');
@@ -26,18 +27,14 @@ const registerValidation = [
     .normalizeEmail()
     .withMessage('Please provide a valid email address')
     .custom((value) => {
-      if (!value.endsWith('.edu')) {
-        throw new Error('Only college email addresses (.edu) are allowed');
+      if (!value.endsWith('@srishakthi.ac.in')) {
+        throw new Error('Only Srishakthi College of Engineering email addresses (@srishakthi.ac.in) are allowed');
       }
       return true;
     }),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long'),
-  body('college')
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('College name must be between 2 and 100 characters'),
   body('graduationYear')
     .optional()
     .isInt({ min: 2020, max: 2030 })
@@ -90,6 +87,7 @@ router.put('/profile', protect, updateProfileValidation, updateProfile);
 router.put('/change-password', protect, changePasswordValidation, changePassword);
 router.post('/upload-avatar', protect, uploadSingle('avatar'), handleUploadError, uploadAvatar);
 router.get('/college/:college', protect, getUsersByCollege);
+router.get('/users', protect, getAllUsers);
 router.delete('/deactivate', protect, deactivateAccount);
 
 module.exports = router;

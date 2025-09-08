@@ -17,26 +17,90 @@ const getPosts = asyncHandler(async (req, res) => {
     sortOrder = 'desc'
   } = req.query;
 
-  // Build query
-  let query = { isActive: true };
+  const currentUserId = req.user._id;
 
-  // Filter by group
+  // If filtering by specific group, use the existing group posts endpoint logic
   if (groupId) {
-    query.group = groupId;
+    return getGroupPosts(req, res);
   }
 
-  // Filter by user
+  // If filtering by specific user, show their posts from groups they're member of
   if (userId) {
-    query.author = userId;
+    // First get all groups the user is a member of
+    const userGroups = await Group.find({
+      'members.user': currentUserId,
+      isActive: true
+    }).select('_id');
+
+    const groupIds = userGroups.map(group => group._id);
+
+    // Build query for posts from user's groups only
+    let query = { 
+      isActive: true,
+      author: userId,
+      group: { $in: groupIds }
+    };
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const posts = await Post.find(query)
+      .populate('author', 'name email profilePicture')
+      .populate('group', 'name description isPrivate')
+      .populate('likes.user', 'name email profilePicture')
+      .populate('comments.author', 'name email profilePicture')
+      .sort(sort)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    // Add user interaction data
+    const postsWithInteractions = posts.map(post => {
+      const postObj = post.toObject();
+      postObj.isLiked = post.isLikedBy(currentUserId);
+      postObj.userCanEdit = post.author._id.toString() === currentUserId.toString();
+      postObj.userCanDelete = post.author._id.toString() === currentUserId.toString() || 
+                             req.user.role === 'admin';
+      return postObj;
+    });
+
+    const total = await Post.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        posts: postsWithInteractions,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total
+        }
+      }
+    });
   }
+
+  // For recent posts (no specific group or user filter)
+  // Only show posts from groups the user is a member of
+  const userGroups = await Group.find({
+    'members.user': currentUserId,
+    isActive: true
+  }).select('_id');
+
+  const groupIds = userGroups.map(group => group._id);
+
+  // Build query for posts from user's groups only
+  let query = { 
+    isActive: true,
+    group: { $in: groupIds }
+  };
 
   // Build sort object
   const sort = {};
   sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
   const posts = await Post.find(query)
-    .populate('author', 'name email profilePicture college')
-    .populate('group', 'name description')
+    .populate('author', 'name email profilePicture')
+    .populate('group', 'name description isPrivate')
     .populate('likes.user', 'name email profilePicture')
     .populate('comments.author', 'name email profilePicture')
     .sort(sort)
@@ -44,7 +108,6 @@ const getPosts = asyncHandler(async (req, res) => {
     .skip((page - 1) * limit);
 
   // Add user interaction data
-  const currentUserId = req.user._id;
   const postsWithInteractions = posts.map(post => {
     const postObj = post.toObject();
     postObj.isLiked = post.isLikedBy(currentUserId);
@@ -462,20 +525,32 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 const getUserPosts = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { page = 1, limit = 10 } = req.query;
+  const currentUserId = req.user._id;
 
+  // Get all groups the current user is a member of
+  const userGroups = await Group.find({
+    'members.user': currentUserId,
+    isActive: true
+  }).select('_id');
+
+  const groupIds = userGroups.map(group => group._id);
+
+  // Only show posts from groups the current user is a member of
   const posts = await Post.find({ 
     author: userId, 
-    isActive: true 
+    isActive: true,
+    group: { $in: groupIds }
   })
-    .populate('author', 'name email profilePicture college')
-    .populate('group', 'name description')
+    .populate('author', 'name email profilePicture')
+    .populate('group', 'name description isPrivate')
     .sort({ createdAt: -1 })
     .limit(limit * 1)
     .skip((page - 1) * limit);
 
   const total = await Post.countDocuments({ 
     author: userId, 
-    isActive: true 
+    isActive: true,
+    group: { $in: groupIds }
   });
 
   res.status(200).json({

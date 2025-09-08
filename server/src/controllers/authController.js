@@ -24,7 +24,7 @@ const register = asyncHandler(async (req, res) => {
     });
   }
 
-  const { name, email, password, college, graduationYear } = req.body;
+  const { name, email, password, graduationYear } = req.body;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -35,12 +35,11 @@ const register = asyncHandler(async (req, res) => {
     });
   }
 
-  // Create user
+  // Create user (college is now fixed to Srishakthi College of Engineering)
   const user = await User.create({
     name,
     email,
     password,
-    college,
     graduationYear
   });
 
@@ -223,20 +222,57 @@ const uploadAvatar = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get users by college
+// @desc    Get users by college (deprecated - now returns all users since only one college)
 // @route   GET /api/auth/college/:college
 // @access  Private
 const getUsersByCollege = asyncHandler(async (req, res) => {
-  const { college } = req.params;
   const { page = 1, limit = 20 } = req.query;
 
-  const users = await User.findByCollege(college)
-    .select('name email profilePicture bio college graduationYear joinedAt')
+  const users = await User.findAllActive()
+    .select('name email profilePicture bio graduationYear joinedAt')
     .sort({ joinedAt: -1 })
     .limit(limit * 1)
     .skip((page - 1) * limit);
 
-  const total = await User.countDocuments({ college, isActive: true });
+  const total = await User.countDocuments({ isActive: true });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      users,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    }
+  });
+});
+
+// @desc    Get all users (Admin only)
+// @route   GET /api/auth/users
+// @access  Private (Admin only)
+const getAllUsers = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 50, search } = req.query;
+
+  // Build query
+  let query = { isActive: true };
+
+  // Search functionality
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const users = await User.find(query)
+    .select('name email profilePicture bio graduationYear role joinedAt lastActive')
+    .sort({ joinedAt: -1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+  const total = await User.countDocuments(query);
 
   res.status(200).json({
     success: true,
@@ -274,5 +310,6 @@ module.exports = {
   changePassword,
   uploadAvatar,
   getUsersByCollege,
+  getAllUsers,
   deactivateAccount
 };

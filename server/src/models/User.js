@@ -20,10 +20,10 @@ const userSchema = new mongoose.Schema({
     ],
     validate: {
       validator: function(email) {
-        // Check if email ends with .edu
-        return email.endsWith('.edu');
+        // Only allow @srishakthi.ac.in email addresses
+        return email.endsWith('@srishakthi.ac.in');
       },
-      message: 'Only college email addresses (.edu) are allowed'
+      message: 'Only Srishakthi College of Engineering email addresses (@srishakthi.ac.in) are allowed'
     }
   },
   password: {
@@ -50,11 +50,8 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  college: {
-    type: String,
-    required: [true, 'College name is required'],
-    trim: true
-  },
+  // College is now fixed to Srishakthi College of Engineering
+  // No need for college field since only one college is allowed
   graduationYear: {
     type: Number,
     min: [2020, 'Graduation year must be 2020 or later'],
@@ -78,7 +75,6 @@ const userSchema = new mongoose.Schema({
 
 // Index for better query performance
 // Note: unique: true on email already creates an index; avoid duplicating it
-userSchema.index({ college: 1 });
 userSchema.index({ role: 1 });
 
 // Hash password before saving
@@ -109,19 +105,10 @@ userSchema.methods.getPublicProfile = function() {
   return userObject;
 };
 
-// Static method to find users by college
-userSchema.statics.findByCollege = function(college) {
-  return this.find({ college, isActive: true }).select('-password');
+// Static method to find all active users (since only one college is allowed)
+userSchema.statics.findAllActive = function() {
+  return this.find({ isActive: true }).select('-password');
 };
-
-// Virtual for extracting college domain from email
-userSchema.virtual('collegeDomain').get(function() {
-  if (this.email) {
-    const domain = this.email.split('@')[1];
-    return domain;
-  }
-  return null;
-});
 
 // Ensure virtual fields are serialized
 userSchema.set('toJSON', { virtuals: true });

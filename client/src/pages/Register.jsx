@@ -9,7 +9,6 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    college: '',
     graduationYear: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -56,8 +55,8 @@ const Register = () => {
     // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!formData.email.endsWith('.edu')) {
-      newErrors.email = 'Only college email addresses (.edu) are allowed';
+    } else if (!formData.email.endsWith('@srishakthi.ac.in')) {
+      newErrors.email = 'Only Srishakthi College of Engineering email addresses (@srishakthi.ac.in) are allowed';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
@@ -76,10 +75,7 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // College validation
-    if (!formData.college.trim()) {
-      newErrors.college = 'College name is required';
-    }
+    // College is now fixed to Srishakthi College of Engineering
 
     // Graduation year validation
     if (formData.graduationYear) {
@@ -107,7 +103,6 @@ const Register = () => {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        college: formData.college.trim(),
         graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : undefined,
       });
 
@@ -134,7 +129,7 @@ const Register = () => {
             Join UniLink
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Create your account to connect with college students
+            Create your account to connect with Srishakthi College students
           </p>
         </div>
 
@@ -187,31 +182,8 @@ const Register = () => {
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
               <p className="mt-1 text-xs text-gray-500">
-                Only .edu email addresses are allowed
+                Only @srishakthi.ac.in email addresses are allowed
               </p>
-            </div>
-
-            {/* College Field */}
-            <div>
-              <label htmlFor="college" className="block text-sm font-medium text-gray-700 mb-1">
-                College/University Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <GraduationCap className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="college"
-                  name="college"
-                  type="text"
-                  required
-                  className={`input-field pl-10 ${errors.college ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Enter your college name"
-                  value={formData.college}
-                  onChange={handleChange}
-                />
-              </div>
-              {errors.college && <p className="mt-1 text-sm text-red-600">{errors.college}</p>}
             </div>
 
             {/* Graduation Year Field */}

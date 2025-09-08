@@ -23,10 +23,10 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('groups');
 
-  // Fetch groups
+  // Fetch groups (all groups are from Srishakthi College)
   const { data: groupsData, isLoading: groupsLoading } = useQuery(
     ['groups', searchTerm],
-    () => groupService.getGroups({ search: searchTerm, college: user?.college }),
+    () => groupService.getGroups({ search: searchTerm }),
     {
       enabled: !!user,
     }
@@ -73,7 +73,7 @@ const Dashboard = () => {
           Welcome back, {user?.name}!
         </h1>
         <p className="text-gray-600">
-          Connect with students from {user?.college} and discover new groups.
+          Connect with students from Srishakthi College of Engineering and discover new groups.
         </p>
       </div>
 

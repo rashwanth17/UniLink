@@ -8,16 +8,11 @@ const { asyncHandler } = require('../middleware/errorMiddleware');
 // @route   GET /api/groups
 // @access  Private
 const getGroups = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, college, search } = req.query;
+  const { page = 1, limit = 10, search } = req.query;
   const userId = req.user._id;
 
   // Build query
   let query = { isActive: true };
-
-  // Filter by college if specified
-  if (college) {
-    query.college = college;
-  }
 
   // Search functionality
   if (search) {
@@ -132,14 +127,12 @@ const createGroup = asyncHandler(async (req, res) => {
 
   const { name, description, isPrivate, tags } = req.body;
   const userId = req.user._id;
-  const userCollege = req.user.college;
 
-  // Create group
+  // Create group (college is now fixed to Srishakthi College of Engineering)
   const group = await Group.create({
     name,
     description,
     creator: userId,
-    college: userCollege,
     isPrivate,
     tags: tags || []
   });

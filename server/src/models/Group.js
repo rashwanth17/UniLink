@@ -56,11 +56,8 @@ const groupSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  college: {
-    type: String,
-    required: [true, 'College name is required'],
-    trim: true
-  },
+  // College is now fixed to Srishakthi College of Engineering
+  // No need for college field since only one college is allowed
   tags: [{
     type: String,
     trim: true,
@@ -96,7 +93,6 @@ const groupSchema = new mongoose.Schema({
 
 // Indexes for better query performance
 groupSchema.index({ name: 'text', description: 'text' });
-groupSchema.index({ college: 1 });
 groupSchema.index({ creator: 1 });
 groupSchema.index({ isActive: 1 });
 groupSchema.index({ 'members.user': 1 });

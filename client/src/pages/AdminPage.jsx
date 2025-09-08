@@ -41,12 +41,12 @@ const AdminPage = () => {
     }
   );
 
-  // Fetch users by college
+  // Fetch all users (Admin only) - all users are from Srishakthi College
   const { data: usersData, isLoading: usersLoading } = useQuery(
-    ['admin-users', user?.college],
-    () => authService.getUsersByCollege(user?.college, 1, 100),
+    ['admin-users', searchTerm],
+    () => authService.getAllUsers(1, 100, searchTerm),
     {
-      enabled: user?.role === 'admin' && !!user?.college,
+      enabled: user?.role === 'admin',
     }
   );
 
@@ -121,7 +121,7 @@ const AdminPage = () => {
           Admin Panel
         </h1>
         <p className="text-gray-600">
-          Manage groups, posts, and users for {user?.college}
+          Manage groups, posts, and users for Srishakthi College of Engineering
         </p>
       </div>
 
