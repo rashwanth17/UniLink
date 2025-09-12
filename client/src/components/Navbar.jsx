@@ -43,7 +43,7 @@ const Navbar = () => {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">U</span>
               </div>
-              <span className="text-xl font-bold text-gradient">UniLink</span>
+              <span className="text-xl font-bold text-gray-900">UniLink</span>
             </Link>
             
             <div className="flex items-center space-x-4">
@@ -75,7 +75,7 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">U</span>
             </div>
-            <span className="text-xl font-bold text-gradient">UniLink</span>
+            <span className="text-xl font-bold text-gray-900">UniLink</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -86,10 +86,12 @@ const Navbar = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
                     isActive(item.path)
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                      ? item.path === '/create-group'
+                        ? 'bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white shadow-lg hover:-translate-y-1'
+                        : 'bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white shadow-lg hover:-translate-y-1'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                   }`}
                 >
                   <Icon size={18} />
@@ -105,10 +107,10 @@ const Navbar = () => {
             {user?.role === 'admin' && (
               <Link
                 to="/admin"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
                   isActive('/admin')
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white shadow-lg hover:-translate-y-1'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
                 <Shield size={18} />
@@ -194,10 +196,12 @@ const Navbar = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
                       isActive(item.path)
-                        ? 'bg-primary-50 text-primary-600'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                        ? item.path === '/create-group'
+                          ? 'bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white shadow-lg'
+                          : 'bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white shadow-lg'
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -210,10 +214,10 @@ const Navbar = () => {
               {user?.role === 'admin' && (
                 <Link
                   to="/admin"
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
                     isActive('/admin')
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white shadow-lg'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

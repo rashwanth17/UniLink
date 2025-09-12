@@ -171,28 +171,33 @@ const GroupPage = () => {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Group Header */}
-      <div className="card mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
-              {group.isPrivate && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  Private
-                </span>
-              )}
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white transition-transform duration-300 hover:-translate-y-2 mb-6">
+        <div className="p-6">
+          <div className="mb-4 flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-2xl font-bold">{group.name}</h1>
+                {group.isPrivate && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white">
+                    Private
+                  </span>
+                )}
+              </div>
+              <p className="opacity-90 mb-4">{group.description}</p>
+              <div className="flex items-center space-x-6 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users size={16} />
+                  <span>{group.memberCount} members</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <MessageCircle size={16} />
+                  <span>{group.postCount} posts</span>
+                </div>
+                <span className="opacity-75">Created by {group.creator.name}</span>
+              </div>
             </div>
-            <p className="text-gray-600 mb-4">{group.description}</p>
-            <div className="flex items-center space-x-6 text-sm text-gray-500">
-              <div className="flex items-center space-x-1">
-                <Users size={16} />
-                <span>{group.memberCount} members</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MessageCircle size={16} />
-                <span>{group.postCount} posts</span>
-              </div>
-              <span>Created by {group.creator.name}</span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20 ml-3">
+              <Users size={24} />
             </div>
           </div>
           
@@ -200,13 +205,13 @@ const GroupPage = () => {
             {group.isMember ? (
               <>
                 {(group.isAdmin || group.isCreator) && pendingRequests.length > 0 && (
-                  <div className="mr-2 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                  <div className="mr-2 text-xs px-2 py-1 rounded-full bg-white/20 text-white">
                     {pendingRequests.length} pending
                   </div>
                 )}
                 <button
                   onClick={handleLeaveGroup}
-                  className="btn-secondary flex items-center space-x-2"
+                  className="cursor-pointer rounded-xl bg-white/20 py-2 px-4 font-medium text-white border border-white/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/30 flex items-center space-x-2"
                   disabled={leaveGroupMutation.isLoading}
                 >
                   <UserMinus size={16} />
@@ -216,7 +221,7 @@ const GroupPage = () => {
             ) : (
               <button
                 onClick={() => setShowJoinModal(true)}
-                className="btn-primary flex items-center space-x-2"
+                className="cursor-pointer rounded-xl bg-white py-2 px-4 font-medium text-green-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center space-x-2"
               >
                 <UserPlus size={16} />
                 <span>{group.isPrivate ? 'Request to Join' : 'Join Group'}</span>
@@ -243,66 +248,99 @@ const GroupPage = () => {
       {/* Create Post Button */}
       {group.isMember && (
         <div className="mb-6">
-          <Link
-            to={`/create-post/${group._id}`}
-            className="btn-primary flex items-center space-x-2 w-full sm:w-auto"
-          >
-            <Plus size={18} />
-            <span>Create Post</span>
-          </Link>
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white transition-transform duration-300 hover:-translate-y-2">
+            <div className="p-6">
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">Create Post</h3>
+                  <p className="opacity-90">Share something with the group</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                  <Plus size={24} />
+                </div>
+              </div>
+              <Link
+                to={`/create-post/${group._id}`}
+                className="w-full cursor-pointer rounded-xl bg-white py-3 font-medium text-green-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-center block"
+              >
+                Create New Post
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Admin: Pending Requests */}
       {(group.isAdmin || group.isCreator) && (
-        <div className="card mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900">Join Requests</h3>
-            <span className="text-sm text-gray-500">{pendingRequests.length}</span>
-          </div>
-          {pendingRequests.length === 0 ? (
-            <p className="text-sm text-gray-600">No pending requests.</p>
-          ) : (
-            <div className="space-y-3">
-              {pendingRequests.map((r) => (
-                <div key={r.user._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {r.user.profilePicture ? (
-                      <img src={r.user.profilePicture} alt={r.user.name} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                        <span className="text-primary-600 text-xs font-medium">{r.user.name.charAt(0).toUpperCase()}</span>
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white transition-transform duration-300 hover:-translate-y-2 mb-6">
+          <div className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h3 className="text-xl font-bold">Join Requests</h3>
+                <p className="opacity-90">{pendingRequests.length} pending requests</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                <Users size={24} />
+              </div>
+            </div>
+            {pendingRequests.length === 0 ? (
+              <p className="text-sm opacity-75">No pending requests.</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingRequests.map((r) => (
+                  <div key={r.user._id} className="flex items-center justify-between bg-white/10 rounded-lg p-3">
+                    <div className="flex items-center space-x-3">
+                      {r.user.profilePicture ? (
+                        <img src={r.user.profilePicture} alt={r.user.name} className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">{r.user.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-medium text-white">{r.user.name}</div>
+                        <div className="text-xs opacity-75">{r.user.email}</div>
                       </div>
-                    )}
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{r.user.name}</div>
-                      <div className="text-xs text-gray-500">{r.user.email}</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={async () => { await groupService.approveRequest(group._id, r.user._id); await refetchRequests(); toast.success('Approved'); queryClient.invalidateQueries(['group', id]); }}
+                        className="cursor-pointer rounded-xl bg-white py-1 px-3 font-medium text-green-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={async () => { await groupService.rejectRequest(group._id, r.user._id); await refetchRequests(); toast.success('Rejected'); }}
+                        className="cursor-pointer rounded-xl bg-white/20 py-1 px-3 font-medium text-white border border-white/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/30 text-sm"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={async () => { await groupService.approveRequest(group._id, r.user._id); await refetchRequests(); toast.success('Approved'); queryClient.invalidateQueries(['group', id]); }}
-                      className="btn-primary text-sm"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={async () => { await groupService.rejectRequest(group._id, r.user._id); await refetchRequests(); toast.success('Rejected'); }}
-                      className="btn-secondary text-sm"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Posts */}
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-gray-900">Posts</h2>
+        <div className="mb-6">
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white transition-transform duration-300 hover:-translate-y-1">
+            <div className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+                  <MessageCircle size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">Posts</h2>
+                  <p className="text-sm opacity-90">Latest updates from the group</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         
         {postsLoading ? (
           <div className="space-y-4">
@@ -341,66 +379,58 @@ const GroupPage = () => {
         ) : (
           <div className="space-y-4">
             {posts.map((post) => (
-              <div key={post._id} className="card-hover">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    {post.author.profilePicture ? (
-                      <img
-                        src={post.author.profilePicture}
-                        alt={post.author.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                        <span className="text-primary-600 font-medium text-sm">
-                          {post.author.name.charAt(0).toUpperCase()}
+              <div key={post._id} className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white transition-transform duration-300 hover:-translate-y-2">
+                <div className="p-6">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h4 className="text-lg font-bold">
+                          {post.author.name}
+                        </h4>
+                        <span className="opacity-90">•</span>
+                        <span className="opacity-90 text-sm">
+                          {new Date(post.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h4 className="text-sm font-medium text-gray-900">
-                        {post.author.name}
-                      </h4>
-                      <span className="text-sm text-gray-500">•</span>
-                      <span className="text-sm text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-gray-900 mb-3">{post.content}</p>
-                    
-                    {/* Post Media */}
-                    {post.media && post.media.length > 0 && (
-                      <div className="mb-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {post.media.map((media, index) => (
-                            <div key={index} className="relative">
-                              {media.type === 'image' ? (
-                                <img
-                                  src={media.url}
-                                  alt={`Post media ${index + 1}`}
-                                  className="w-full h-48 object-cover rounded-lg"
-                                />
-                              ) : (
-                                <video
-                                  src={media.url}
-                                  controls
-                                  className="w-full h-48 object-cover rounded-lg"
-                                />
-                              )}
-                            </div>
-                          ))}
+                      <p className="text-white mb-4">{post.content}</p>
+                      
+                      {/* Post Media */}
+                      {post.media && post.media.length > 0 && (
+                        <div className="mb-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {post.media.map((media, index) => (
+                              <div key={index} className="relative">
+                                {media.type === 'image' ? (
+                                  <img
+                                    src={media.url}
+                                    alt={`Post media ${index + 1}`}
+                                    className="w-full h-48 object-cover rounded-lg"
+                                  />
+                                ) : (
+                                  <video
+                                    src={media.url}
+                                    controls
+                                    className="w-full h-48 object-cover rounded-lg"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    
-                    {/* Post Actions */}
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      )}
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20 ml-3">
+                      <MessageCircle size={24} />
+                    </div>
+                  </div>
+                  
+                  {/* Post Actions */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4 text-sm">
                       <button
                         onClick={() => handleLikePost(post._id)}
-                        className={`flex items-center space-x-1 hover:text-primary-600 transition-colors ${
-                          post.isLiked ? 'text-primary-600' : ''
+                        className={`flex items-center space-x-1 hover:text-green-200 transition-colors ${
+                          post.isLiked ? 'text-green-200' : ''
                         }`}
                       >
                         <Heart size={16} className={post.isLiked ? 'fill-current' : ''} />
@@ -411,75 +441,70 @@ const GroupPage = () => {
                           const el = document.getElementById(`comment-input-${post._id}`);
                           if (el) el.focus();
                         }}
-                        className="flex items-center space-x-1 hover:text-primary-600 transition-colors"
+                        className="flex items-center space-x-1 hover:text-green-200 transition-colors"
                       >
                         <MessageCircle size={16} />
                         <span>{post.engagement.commentCount}</span>
                       </button>
-                      <button className="flex items-center space-x-1 hover:text-primary-600 transition-colors">
+                      <button className="flex items-center space-x-1 hover:text-green-200 transition-colors">
                         <Share2 size={16} />
                         <span>Share</span>
                       </button>
                     </div>
-
-                    {/* Comment composer */}
-                    <div className="mt-3 flex items-center space-x-2">
-                      <input
-                        id={`comment-input-${post._id}`}
-                        type="text"
-                        value={commentDrafts[post._id] || ''}
-                        onChange={(e) => onChangeDraft(post._id, e.target.value)}
-                        placeholder="Write a comment..."
-                        className="input-field flex-1"
-                      />
-                      <button
-                        onClick={() => submitComment(post._id)}
-                        className="btn-primary"
-                        disabled={addCommentMutation.isLoading}
-                      >
-                        Comment
-                      </button>
-                    </div>
-
-                    {/* Comments list */}
-                    {post.comments && post.comments.length > 0 && (
-                      <div className="mt-4 space-y-3">
-                        {post.comments.map((c) => (
-                          <div key={c._id} className="flex items-start space-x-3">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                              {c.author?.profilePicture ? (
-                                <img
-                                  src={c.author.profilePicture}
-                                  alt={c.author?.name || 'User'}
-                                  className="w-8 h-8 object-cover"
-                                />
-                              ) : (
-                                <span className="text-xs text-gray-600">
-                                  {(c.author?.name || 'U').charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {c.author?.name || 'Unknown'}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(c.createdAt).toLocaleString()}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-800 mt-1">{c.content}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                  <div className="flex-shrink-0">
-                    <button className="p-1 text-gray-400 hover:text-gray-600">
-                      <MoreVertical size={16} />
+
+                  {/* Comment composer */}
+                  <div className="mb-4 flex items-center space-x-2">
+                    <input
+                      id={`comment-input-${post._id}`}
+                      type="text"
+                      value={commentDrafts[post._id] || ''}
+                      onChange={(e) => onChangeDraft(post._id, e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 rounded-xl bg-white/20 border border-white/30 px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    />
+                    <button
+                      onClick={() => submitComment(post._id)}
+                      className="cursor-pointer rounded-xl bg-white py-2 px-4 font-medium text-[#0F9D58] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm"
+                      disabled={addCommentMutation.isLoading}
+                    >
+                      Comment
                     </button>
                   </div>
+
+                  {/* Comments list */}
+                  {post.comments && post.comments.length > 0 && (
+                    <div className="space-y-3">
+                      {post.comments.map((c) => (
+                        <div key={c._id} className="flex items-start space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+                            {c.author?.profilePicture ? (
+                              <img
+                                src={c.author.profilePicture}
+                                alt={c.author?.name || 'User'}
+                                className="w-8 h-8 object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs text-white font-medium">
+                                {(c.author?.name || 'U').charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 bg-white/10 border border-white/20 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-white">
+                                {c.author?.name || 'Unknown'}
+                              </span>
+                              <span className="text-xs opacity-75">
+                                {new Date(c.createdAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-white mt-1">{c.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -490,7 +515,7 @@ const GroupPage = () => {
       {/* Join Modal */}
       {showJoinModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-[#0b0d12] border border-gray-800/60 rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {group.isPrivate ? 'Request to Join' : 'Join'} {group.name}
             </h3>

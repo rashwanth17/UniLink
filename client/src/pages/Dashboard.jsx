@@ -13,7 +13,9 @@ import {
   Clock,
   MessageCircle,
   Heart,
-  Eye
+  Eye,
+  Lock,
+  Globe
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -86,14 +88,14 @@ const Dashboard = () => {
           <input
             type="text"
             placeholder="Search groups..."
-            className="input-field pl-10"
+            className="w-full px-3 py-2 pl-10 border border-gray-300 bg-white text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Link
           to="/create-group"
-          className="btn-primary flex items-center space-x-2 whitespace-nowrap"
+          className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white transition-transform duration-300 hover:-translate-y-1 shadow-lg flex items-center space-x-2 whitespace-nowrap px-6 py-3 font-medium"
         >
           <Plus size={18} />
           <span>Create Group</span>
@@ -101,18 +103,21 @@ const Dashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+      <div className="mb-6">
+        <nav className="flex space-x-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = selectedTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id)}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                  selectedTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                className={`flex items-center space-x-2 py-3 px-6 rounded-2xl font-medium text-sm transition-all duration-300 ${
+                  isActive
+                    ? tab.id === 'groups'
+                      ? 'bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white shadow-lg hover:-translate-y-1'
+                      : 'bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white shadow-lg hover:-translate-y-1'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
                 }`}
               >
                 <Icon size={18} />
@@ -129,13 +134,26 @@ const Dashboard = () => {
         <div className="lg:col-span-2">
           {selectedTab === 'groups' && (
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {searchTerm ? 'Search Results' : 'Available Groups'}
-                </h2>
-                <span className="text-sm text-gray-500">
-                  {groups.length} group{groups.length !== 1 ? 's' : ''}
-                </span>
+              <div className="mb-6">
+                <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white transition-transform duration-300 hover:-translate-y-1">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+                          <Users size={20} />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-bold">
+                            {searchTerm ? 'Search Results' : 'Available Groups'}
+                          </h2>
+                          <p className="text-sm opacity-90">
+                            {groups.length} group{groups.length !== 1 ? 's' : ''} found
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {groupsLoading ? (
@@ -169,53 +187,45 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {groups.map((group) => (
-                    <div key={group._id} className="card-hover">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              <Link to={`/groups/${group._id}`} className="hover:text-primary-700">
+                    <div key={group._id} className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0078D4] to-[#50B6FF] text-white transition-transform duration-300 hover:-translate-y-2">
+                      <div className="p-4">
+                        <div className="mb-3 flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold">
+                              <Link to={`/groups/${group._id}`} className="hover:text-blue-200">
                                 {group.name}
                               </Link>
                             </h3>
-                            {group.isPrivate && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Private
-                              </span>
-                            )}
+                            <p className="opacity-90 text-sm line-clamp-1">
+                              {group.description || 'No description provided.'}
+                            </p>
                           </div>
-                          <p className="text-gray-600 mb-3 line-clamp-2">
-                            {group.description || 'No description provided.'}
-                          </p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <Users size={16} />
-                              <span>{group.memberCount} members</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <MessageCircle size={16} />
-                              <span>{group.postCount} posts</span>
-                            </div>
-                            <span>Created by {group.creator.name}</span>
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 ml-3">
+                            {group.isPrivate ? <Lock size={20} /> : <Globe size={20} />}
                           </div>
                         </div>
-                        <div className="ml-4">
-                          {group.isMember ? (
-                            <Link
-                              to={`/groups/${group._id}`}
-                              className="btn-primary text-sm"
-                            >
-                              Open Group
-                            </Link>
-                          ) : (
-                            <Link
-                              to={`/groups/${group._id}`}
-                              className="btn-outline text-sm"
-                            >
-                              View Group
-                            </Link>
-                          )}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-1 text-sm">
+                            <Users size={14} />
+                            <span>{group.memberCount} members</span>
+                          </div>
+                          <span className="text-xs opacity-75">by {group.creator.name}</span>
                         </div>
+                        {group.isMember ? (
+                          <Link
+                            to={`/groups/${group._id}`}
+                            className="w-full cursor-pointer rounded-xl bg-white py-2 font-medium text-[#0078D4] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-center block text-sm"
+                          >
+                            Open Group
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/groups/${group._id}`}
+                            className="w-full cursor-pointer rounded-xl bg-white/20 py-2 font-medium text-white border border-white/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/30 text-center block text-sm"
+                          >
+                            View Group
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -226,13 +236,26 @@ const Dashboard = () => {
 
           {selectedTab === 'posts' && (
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Recent Posts
-                </h2>
-                <span className="text-sm text-gray-500">
-                  {posts.length} post{posts.length !== 1 ? 's' : ''}
-                </span>
+              <div className="mb-6">
+                <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white transition-transform duration-300 hover:-translate-y-1">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+                          <MessageCircle size={20} />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-bold">
+                            Recent Posts
+                          </h2>
+                          <p className="text-sm opacity-90">
+                            {posts.length} post{posts.length !== 1 ? 's' : ''} from your groups
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {postsLoading ? (
@@ -264,65 +287,56 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {posts.map((post) => (
-                    <div key={post._id} className="card-hover">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          {post.author.profilePicture ? (
-                            <img
-                              src={post.author.profilePicture}
-                              alt={post.author.name}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                              <span className="text-primary-600 font-medium text-sm">
-                                {post.author.name.charAt(0).toUpperCase()}
-                              </span>
+                    <div key={post._id} className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F9D58] to-[#3DDB94] text-white transition-transform duration-300 hover:-translate-y-2">
+                      <div className="p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h4 className="text-lg font-bold">
+                                {post.author.name}
+                              </h4>
+                              <span className="opacity-90">in</span>
+                              <Link
+                                to={`/groups/${post.group._id}`}
+                                className="text-lg font-bold hover:text-green-200"
+                              >
+                                {post.group.name}
+                              </Link>
                             </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h4 className="text-sm font-medium text-gray-900">
-                              {post.author.name}
-                            </h4>
-                            <span className="text-sm text-gray-500">in</span>
-                            <Link
-                              to={`/groups/${post.group._id}`}
-                              className="text-sm font-medium text-primary-600 hover:text-primary-700"
-                            >
-                              {post.group.name}
-                            </Link>
+                            <p className="opacity-90 text-sm mb-3">
+                              {new Date(post.createdAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-white mb-4 line-clamp-3">
+                              {post.content}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-500 mb-2">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </p>
-                          <p className="text-gray-900 mb-3 line-clamp-3">
-                            {post.content}
-                          </p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20 ml-3">
+                            <MessageCircle size={24} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 text-sm">
                             <button
                               onClick={() => handleLikeRecentPost(post._id)}
-                              className="flex items-center space-x-1 hover:text-primary-600"
+                              className="flex items-center space-x-1 hover:text-green-200"
                             >
                               <Heart size={16} />
                               <span>{post.engagement.likeCount}</span>
                             </button>
                             <button
                               onClick={() => goToGroup(post.group._id)}
-                              className="flex items-center space-x-1 hover:text-primary-600"
+                              className="flex items-center space-x-1 hover:text-green-200"
                             >
                               <MessageCircle size={16} />
                               <span>{post.engagement.commentCount}</span>
                             </button>
-                            <button
-                              onClick={() => goToGroup(post.group._id)}
-                              className="flex items-center space-x-1 hover:text-primary-600"
-                            >
-                              <Eye size={16} />
-                              <span>View</span>
-                            </button>
                           </div>
+                          <button
+                            onClick={() => goToGroup(post.group._id)}
+                            className="cursor-pointer rounded-xl bg-white py-2 px-4 font-medium text-[#0F9D58] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm"
+                          >
+                            View Post
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -335,82 +349,92 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* User Info */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Your Profile
-            </h3>
-            <div className="flex items-center space-x-3 mb-4">
-              {user?.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                  <span className="text-primary-600 font-medium">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
+          {/* Profile & Actions */}
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0047BB] to-[#2D68F8] text-white transition-transform duration-300 hover:-translate-y-2">
+            <div className="p-6">
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">Your Profile</h3>
+                  <p className="opacity-90">Manage & Connect</p>
                 </div>
-              )}
-              <div>
-                <h4 className="font-medium text-gray-900">{user?.name}</h4>
-                <p className="text-sm text-gray-500">{user?.college}</p>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                  <Users size={24} />
+                </div>
+              </div>
+              
+              {/* Profile Info */}
+              <div className="flex items-center space-x-3 mb-6">
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/20">
+                    <span className="text-white font-medium text-lg">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-medium text-white">{user?.name}</h4>
+                  <p className="text-sm opacity-90">Srishakthi College</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2">
+                <Link
+                  to="/profile"
+                  className="w-full cursor-pointer rounded-xl bg-white py-3 font-medium text-blue-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-center block"
+                >
+                  View Profile
+                </Link>
+                <Link
+                  to="/create-group"
+                  className="w-full cursor-pointer rounded-xl bg-white/20 py-3 font-medium text-white border border-white/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/30 text-center block"
+                >
+                  Create Group
+                </Link>
               </div>
             </div>
-            <Link to="/profile" className="btn-outline w-full text-center">
-              View Profile
-            </Link>
           </div>
 
           {/* Quick Stats */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Stats
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Groups Joined</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {user?.groups?.length || 0}
-                </span>
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#0047BB] to-[#2D68F8] text-white transition-transform duration-300 hover:-translate-y-2">
+            <div className="p-6">
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">Quick Stats</h3>
+                  <p className="opacity-90">Your Activity</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                  <TrendingUp size={24} />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">College</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {user?.college}
-                </span>
-              </div>
-              {user?.graduationYear && (
+              <div className="mt-8 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Graduation</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {user.graduationYear}
+                  <span className="opacity-90">Groups Joined:</span>
+                  <span className="text-xl font-bold">
+                    {user?.groups?.length || 0}
                   </span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="space-y-2">
-              <Link
-                to="/create-group"
-                className="w-full btn-primary text-center block"
-              >
-                Create Group
-              </Link>
-              <Link
-                to="/profile"
-                className="w-full btn-secondary text-center block"
-              >
-                Edit Profile
-              </Link>
+                <div className="flex items-center justify-between">
+                  <span className="opacity-90">College:</span>
+                  <span className="text-sm font-medium">
+                    Srishakthi
+                  </span>
+                </div>
+                {user?.graduationYear && (
+                  <div className="flex items-center justify-between">
+                    <span className="opacity-90">Graduation:</span>
+                    <span className="text-sm font-medium">
+                      {user.graduationYear}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

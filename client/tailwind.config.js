@@ -4,32 +4,40 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // Deep royal purple as primary
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#f3e8ff',
+          100: '#e9d5ff',
+          200: '#d8b4fe',
+          300: '#c084fc',
+          400: '#a855f7',
+          500: '#9333ea',
+          600: '#7e22ce',
+          700: '#6a0dad',
+          800: '#5b0a96',
+          900: '#4c087e',
         },
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
+        // Neon purple for highlights/hover
+        accent: {
+          400: '#9D4EDD',
+          500: '#A855F7',
+        },
+        // Greys for dark UI
+        gray: {
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#4b5563',
+          700: '#374151',
+          800: '#1f2937',
+          900: '#0a0a0a',
         }
       },
       fontFamily: {
@@ -39,6 +47,10 @@ export default {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'bounce-in': 'bounceIn 0.6s ease-out',
+        'pop': 'pop 0.18s ease-out',
+      },
+      boxShadow: {
+        'glow-purple': '0 0 0 3px rgba(168, 85, 247, 0.25), 0 12px 30px -10px rgba(157, 78, 221, 0.45)'
       },
       keyframes: {
         fadeIn: {
@@ -53,6 +65,10 @@ export default {
           '0%': { transform: 'scale(0.3)', opacity: '0' },
           '50%': { transform: 'scale(1.05)' },
           '70%': { transform: 'scale(0.9)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        pop: {
+          '0%': { transform: 'scale(0.96)', opacity: '0.8' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },

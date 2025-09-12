@@ -83,135 +83,148 @@ const CreateGroup = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Group Information
-          </h2>
-          
-          {/* Group Name */}
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Group Name *
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Users className="h-5 w-5 text-gray-400" />
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white transition-transform duration-300 hover:-translate-y-2">
+          <div className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-bold">Group Information</h2>
+                <p className="opacity-90">Basic details for your group</p>
               </div>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="input-field pl-10"
-                placeholder="Enter group name"
-                value={formData.name}
-                onChange={handleChange}
-                maxLength={100}
-              />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                <Users size={24} />
+              </div>
             </div>
-            <p className="mt-1 text-xs text-gray-500">
-              {formData.name.length}/100 characters
-            </p>
-          </div>
-
-          {/* Description */}
-          <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              className="input-field"
-              placeholder="Describe what this group is about..."
-              value={formData.description}
-              onChange={handleChange}
-              maxLength={500}
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              {formData.description.length}/500 characters
-            </p>
-          </div>
-
-          {/* Privacy Setting */}
-          <div className="mb-4">
-            <label className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                name="isPrivate"
-                checked={formData.isPrivate}
-                onChange={handleChange}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <div className="flex items-center space-x-2">
-                <Lock className="h-4 w-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">
-                  Make this a private group
-                </span>
+          
+            {/* Group Name */}
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium text-white mb-1">
+                Group Name *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Users className="h-5 w-5 text-white/70" />
+                </div>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="w-full rounded-xl bg-white/20 border border-white/30 px-3 py-2 pl-10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  placeholder="Enter group name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  maxLength={100}
+                />
               </div>
-            </label>
-            <p className="mt-1 text-xs text-gray-500">
-              Private groups require approval to join
-            </p>
+              <p className="mt-1 text-xs opacity-75">
+                {formData.name.length}/100 characters
+              </p>
+            </div>
+
+            {/* Description */}
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-white mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={4}
+                className="w-full rounded-xl bg-white/20 border border-white/30 px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                placeholder="Describe what this group is about..."
+                value={formData.description}
+                onChange={handleChange}
+                maxLength={500}
+              />
+              <p className="mt-1 text-xs opacity-75">
+                {formData.description.length}/500 characters
+              </p>
+            </div>
+
+            {/* Privacy Setting */}
+            <div className="mb-4">
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  name="isPrivate"
+                  checked={formData.isPrivate}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-white/30 rounded bg-white/20"
+                />
+                <div className="flex items-center space-x-2">
+                  <Lock className="h-4 w-4 text-white/70" />
+                  <span className="text-sm font-medium text-white">
+                    Make this a private group
+                  </span>
+                </div>
+              </label>
+              <p className="mt-1 text-xs opacity-75">
+                Private groups require approval to join
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Tags */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Tags
-          </h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Add tags to help others find your group
-          </p>
-          
-          {/* Tag Input */}
-          <form onSubmit={handleAddTag} className="mb-4">
-            <div className="flex space-x-2">
-              <div className="flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Tag className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="Add a tag"
-                  maxLength={30}
-                />
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#107C10] to-[#5DBE3F] text-white transition-transform duration-300 hover:-translate-y-2">
+          <div className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-bold">Tags</h2>
+                <p className="opacity-90">Add tags to help others find your group</p>
               </div>
-              <button
-                type="submit"
-                className="btn-primary flex items-center space-x-2"
-              >
-                <Plus size={16} />
-                <span>Add</span>
-              </button>
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
+                <Tag size={24} />
+              </div>
             </div>
-          </form>
-
-          {/* Tags Display */}
-          {formData.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
+            
+            {/* Tag Input */}
+            <form onSubmit={handleAddTag} className="mb-4">
+              <div className="flex space-x-2">
+                <div className="flex-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Tag className="h-5 w-5 text-white/70" />
+                  </div>
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    className="w-full rounded-xl bg-white/20 border border-white/30 px-3 py-2 pl-10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    placeholder="Add a tag"
+                    maxLength={30}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-xl bg-white py-2 px-4 font-medium text-green-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center space-x-2"
                 >
-                  #{tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-2 text-primary-600 hover:text-primary-800"
+                  <Plus size={16} />
+                  <span>Add</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Tags Display */}
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white border border-white/30"
                   >
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-2 text-white hover:text-white/70"
+                    >
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Submit Buttons */}
@@ -219,14 +232,14 @@ const CreateGroup = () => {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="flex-1 btn-secondary"
+            className="flex-1 cursor-pointer rounded-xl bg-white/20 py-3 font-medium text-white border border-white/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/30"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading || !formData.name.trim()}
-            className="flex-1 btn-primary"
+            className="flex-1 cursor-pointer rounded-xl bg-white py-3 font-medium text-green-600 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Creating Group...' : 'Create Group'}
           </button>
